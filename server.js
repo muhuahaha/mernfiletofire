@@ -1,17 +1,19 @@
 require('dotenv').config();
 const express = require('express');
+
 const app = express();
 const colors = require('colors');
 const path = require('path');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const mongoose = require('mongoose');
 const corsOptions = require('./config/corsOptions');
 const { logger } = require('./middleware/logEvents');
 const errorHandler = require('./middleware/errorHandler');
 const verifyJWT = require('./middleware/verifyJWT');
-const cookieParser = require('cookie-parser');
 const credentials = require('./middleware/credentials');
-const mongoose = require('mongoose');
 const connectDB = require('./config/dbConn');
+
 const PORT = process.env.PORT || 3500;
 
 // Connect to MongoDB
@@ -30,13 +32,13 @@ app.use(cors(corsOptions));
 // built-in middleware to handle urlencoded form data
 app.use(express.urlencoded({ extended: false }));
 
-// built-in middleware for json 
+// built-in middleware for json
 app.use(express.json());
 
-//middleware for cookies
+// middleware for cookies
 app.use(cookieParser());
 
-//serve static files
+// serve static files
 app.use('/', express.static(path.join(__dirname, '/public')));
 
 // routes
@@ -51,19 +53,21 @@ app.use('/employees', require('./routes/api/employees'));
 app.use('/users', require('./routes/api/users'));
 
 app.all('*', (req, res) => {
-    res.status(404);
-    if (req.accepts('html')) {
-        res.sendFile(path.join(__dirname, 'views', '404.html'));
-    } else if (req.accepts('json')) {
-        res.json({ "error": "404 Not Found" });
-    } else {
-        res.type('txt').send("404 Not Found");
-    }
+  res.status(404);
+  if (req.accepts('html')) {
+    res.sendFile(path.join(__dirname, 'views', '404.html'));
+  } else if (req.accepts('json')) {
+    res.json({ error: '404 Not Found' });
+  } else {
+    res.type('txt').send('404 Not Found');
+  }
 });
 
 app.use(errorHandler);
 
 mongoose.connection.once('open', () => {
-    console.log('Connected to MongoDB');
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`.cyan.underline));
+  console.log('Connected to MongoDB');
+  app.listen(PORT, () =>
+    console.log(`Server running on port ${PORT}`.cyan.underline)
+  );
 });
